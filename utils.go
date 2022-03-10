@@ -16,26 +16,32 @@
 package main
 
 import (
-	"log"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/websocket/v2"
+	"math/rand"
+	"strings"
+	"time"
 )
 
-func main() {
-	app := fiber.New()
+const LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
-	app.Use("/websocket", func(c *fiber.Ctx) error {
-		// IsWebSocketUpgrade returns true if the client
-		// requested upgrade to the WebSocket protocol.
-		if websocket.IsWebSocketUpgrade(c) {
-			c.Locals("allowed", true)
-			return c.Next()
+// Create random id for connections
+func RandomId() string {
+	rand.Seed(time.Now().UnixNano())
+
+	bytes := make([]byte, 12)
+
+	for i := range bytes {
+		bytes[i] = LETTERS[rand.Intn(len(LETTERS))]
+	}
+
+	return string(bytes)
+}
+
+// Check if string is right channel format
+func IsChannelFormat(str string) bool {
+	for _, char := range str {
+		if !strings.Contains(LETTERS, string(char)) {
+			return false
 		}
-		return fiber.ErrUpgradeRequired
-	})
-
-	app.Get("/websocket/:channel", websocket.New(WebSocket))
-
-	log.Fatal(app.Listen(":3000"))
+	}
+	return true
 }
