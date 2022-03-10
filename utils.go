@@ -45,3 +45,21 @@ func IsChannelFormat(str string) bool {
 	}
 	return true
 }
+
+// Write a message to sock instance
+func (s *Sock) WriteMessage(messageType int, message []byte) error {
+	return s.Connection.WriteMessage(messageType, message)
+}
+
+// Find all connections by channel
+func FindConnections(channel string) []*Sock {
+	var socks []*Sock
+
+	for _, sock := range CONNECTIONS {
+		if sock.Channel == channel {
+			socks = append(socks, sock)
+		}
+	}
+
+	return socks
+}

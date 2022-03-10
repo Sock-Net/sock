@@ -16,6 +16,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"time"
 
@@ -31,6 +32,13 @@ type Sock struct {
 	Channel    string
 	Id         string
 	CreatedAt  time.Time
+}
+
+// WebsocketMessage struct
+type WebSocketMessage struct {
+	Type    int    `json:"type"`
+	Message string `json:"data"`
+	From    string `json:"from"`
 }
 
 // Websocket handler
@@ -60,24 +68,48 @@ func WebSocket(c *websocket.Conn) {
 
 	// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
 	var (
-		mt  int
-		msg []byte
-		err error
+		messageType int
+		message     []byte
+		wsError     error
 	)
 	for {
 		// Read message
-		if mt, msg, err = c.ReadMessage(); err != nil {
-			log.Println("Read error:", err)
+		if messageType, message, wsError = c.ReadMessage(); wsError != nil {
+			log.Println("Read error:", wsError)
 			break
 		}
 
-		log.Printf("Recieved: \"%s\" From: %s\nChannel: %s\n", msg, sock.Id, sock.Channel)
+		// Decode message
+		wsMessage := new(WebSocketMessage)
+		err := json.Unmarshal(message, &wsMessage)
 
-		// Write message
-		if err = c.WriteMessage(mt, msg); err != nil {
-			log.Println("Write error:", err)
-			break
+		if err != nil {
+			// Write error message
+			if wsError = sock.WriteMessage(messageType, []byte("{\"error\":\"Invalid json format\"}")); wsError != nil {
+				log.Println("Write error:", wsError)
+				break
+			}
+		}
+
+		// Prepare websocket message
+		wsMessage.From = sock.Id
+		marshalledMessage, err := json.Marshal(wsMessage)
+
+		if err != nil {
+			// Write error message
+			if wsError = sock.WriteMessage(messageType, []byte("{\"error\":\"Unknown error\"}")); wsError != nil {
+				log.Println("Write error:", wsError)
+				break
+			}
+		}
+
+		// Send message to the all instances in the channel
+		connectedInstances := FindConnections(sock.Channel)
+		for _, instance := range connectedInstances {
+			if wsError = instance.WriteMessage(messageType, marshalledMessage); wsError != nil {
+				log.Println("Write error:", wsError)
+				break
+			}
 		}
 	}
-
 }
