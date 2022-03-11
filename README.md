@@ -1,2 +1,2 @@
 # Sock
-Sock's lightweight core server written in Go.
+Sock's minimal lightweight core server written in Go.
