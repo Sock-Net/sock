@@ -49,10 +49,14 @@ func WebSocket(c *websocket.Conn) {
 
 	channel := c.Params("channel", "default")
 	sockId := c.Query("id", RandomId())
+	givenToken := c.Query("token", "demo")
 
-	if !IsChannelFormat(channel) || CheckIdExists(channel, sockId) {
+	if !IsChannelFormat(channel) || CheckIdExists(channel, sockId) || givenToken != CONNECTION_TOKEN {
 		c.Close()
 	}
+
+	// Set read limit
+	c.SetReadLimit(int64(READ_LIMIT))
 
 	// New sock instance
 	sock := Sock{
@@ -100,7 +104,7 @@ func WebSocket(c *websocket.Conn) {
 		if wsMessage.Type < 0 {
 			sock.Pinged = true
 			continue
-		} else if sock.Deleted {
+		} else if sock.Deleted { // Remove connection if sock instance deleted
 			sock.Destroy()
 			break
 		}

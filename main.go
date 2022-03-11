@@ -16,10 +16,17 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
+)
+
+var (
+	READ_LIMIT       = 1024
+	PORT             = 3000
+	CONNECTION_TOKEN = "demo"
 )
 
 func main() {
@@ -37,5 +44,5 @@ func main() {
 
 	app.Get("/websocket/:channel", websocket.New(WebSocket))
 
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(fmt.Sprintf(":%d", PORT)))
 }
