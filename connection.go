@@ -27,11 +27,10 @@ var CONNECTIONS []*Sock // List all avaible sock connections
 
 // Sock struct
 type Sock struct {
-	Connection *websocket.Conn
-	Pinged     bool
-	Channel    string
-	Id         string
-	CreatedAt  time.Time
+	Connection      *websocket.Conn
+	Pinged, Deleted bool
+	Channel, Id     string
+	CreatedAt       time.Time
 }
 
 // WebsocketMessage struct
@@ -57,11 +56,16 @@ func WebSocket(c *websocket.Conn) {
 	// New sock instance
 	sock := Sock{
 		Connection: c,
-		Pinged:     true,
+		Pinged:     false,
+		Deleted:    false,
 		Channel:    channel,
 		Id:         RandomId(),
 		CreatedAt:  time.Now(),
 	}
+	sock.StartPingChecker()
+
+	// Close sock instance end of the function
+	defer sock.Destroy()
 
 	// Add to connections
 	CONNECTIONS = append(CONNECTIONS, &sock)
@@ -91,6 +95,15 @@ func WebSocket(c *websocket.Conn) {
 			}
 		}
 
+		// Check if a ping message
+		if wsMessage.Type < 0 {
+			sock.Pinged = true
+			continue
+		} else if sock.Deleted {
+			sock.Destroy()
+			break
+		}
+
 		// Prepare websocket message
 		wsMessage.From = sock.Id
 		marshalledMessage, err := json.Marshal(wsMessage)
@@ -106,9 +119,13 @@ func WebSocket(c *websocket.Conn) {
 		// Send message to the all instances in the channel
 		connectedInstances := FindConnections(sock.Channel)
 		for _, instance := range connectedInstances {
+			if instance.Deleted {
+				instance.Destroy()
+				continue
+			}
+
 			if wsError = instance.WriteMessage(messageType, marshalledMessage); wsError != nil {
 				log.Println("Write error:", wsError)
-				break
 			}
 		}
 	}

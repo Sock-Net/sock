@@ -51,6 +51,34 @@ func (s *Sock) WriteMessage(messageType int, message []byte) error {
 	return s.Connection.WriteMessage(messageType, message)
 }
 
+// Remove sock from connections list
+func (s *Sock) Destroy() {
+	for index, sock := range CONNECTIONS {
+		if sock.Id == s.Id {
+			CONNECTIONS[index] = CONNECTIONS[len(CONNECTIONS)-1]
+			CONNECTIONS = CONNECTIONS[:len(CONNECTIONS)-1]
+
+			return
+		}
+	}
+}
+
+// Start checker (if sock is alive)
+func (s *Sock) StartPingChecker() {
+	go func() {
+		for {
+			time.Sleep(30 * time.Second)
+
+			if s.Pinged {
+				s.Pinged = false
+			} else {
+				s.Deleted = true
+				return
+			}
+		}
+	}()
+}
+
 // Find all connections by channel
 func FindConnections(channel string) []*Sock {
 	var socks []*Sock
