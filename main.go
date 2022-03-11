@@ -16,6 +16,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 
@@ -23,11 +24,9 @@ import (
 	"github.com/gofiber/websocket/v2"
 )
 
-var (
-	READ_LIMIT       = 1024
-	PORT             = 3000
-	CONNECTION_TOKEN = "demo"
-)
+var READ_LIMIT int
+var PORT int
+var CONNECTION_TOKEN string
 
 func main() {
 	app := fiber.New()
@@ -43,6 +42,11 @@ func main() {
 	})
 
 	app.Get("/websocket/:channel", websocket.New(WebSocket))
+
+	flag.IntVar(&READ_LIMIT, "limit", 1024, "Set sock's read limit")
+	flag.IntVar(&PORT, "port", 3000, "Set sock's sevre port")
+	flag.StringVar(&CONNECTION_TOKEN, "token", "demo", "Set sock's connection token")
+	flag.Parse()
 
 	log.Fatal(app.Listen(fmt.Sprintf(":%d", PORT)))
 }
