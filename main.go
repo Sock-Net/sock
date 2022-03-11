@@ -19,19 +19,20 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
 )
 
 var READ_LIMIT int
-var PORT int
+var PORT string
 var CONNECTION_TOKEN string
 
 func main() {
 	app := fiber.New()
 
-	app.Use("/websocket", func(c *fiber.Ctx) error {
+	app.Use("/channel", func(c *fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.
 		if websocket.IsWebSocketUpgrade(c) {
@@ -41,12 +42,24 @@ func main() {
 		return fiber.ErrUpgradeRequired
 	})
 
-	app.Get("/websocket/:channel", websocket.New(WebSocket))
+	app.Get("/channel/:channel", websocket.New(WebSocket))
 
 	flag.IntVar(&READ_LIMIT, "limit", 1024, "Set sock's read limit")
-	flag.IntVar(&PORT, "port", 3000, "Set sock's sevre port")
+	flag.StringVar(&PORT, "port", "", "Set sock's sevre port")
 	flag.StringVar(&CONNECTION_TOKEN, "token", "demo", "Set sock's connection token")
 	flag.Parse()
 
-	log.Fatal(app.Listen(fmt.Sprintf(":%d", PORT)))
+	// If port is not given
+	if PORT == "" {
+		// Get from env
+		PORT = os.Getenv("PORT")
+
+		// If still port is blank
+		if PORT == "" {
+			// Set port to 3000 by default
+			PORT = "3000"
+		}
+	}
+
+	log.Fatal(app.Listen(fmt.Sprintf(":%s", PORT)))
 }
