@@ -127,6 +127,8 @@ func WebSocket(c *websocket.Conn) {
 			if instance.Deleted {
 				instance.Destroy()
 				continue
+			} else if instance.Id == sock.Id {
+				continue
 			}
 
 			if wsError = instance.WriteMessage(messageType, marshalledMessage); wsError != nil {
