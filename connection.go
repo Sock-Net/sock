@@ -27,10 +27,12 @@ var CONNECTIONS []*Sock // List all avaible sock connections
 
 // Sock struct
 type Sock struct {
-	Connection      *websocket.Conn
-	Pinged, Deleted bool
-	Channel, Id     string
-	CreatedAt       time.Time
+	Connection *websocket.Conn `json:"-"`
+	Pinged     bool            `json:"-"`
+	Deleted    bool            `json:"-"`
+	Channel    string          `json:"channel"`
+	Id         string          `json:"id"`
+	CreatedAt  time.Time       `json:"created_at"`
 }
 
 // WebsocketMessage struct
@@ -102,6 +104,7 @@ func WebSocket(c *websocket.Conn) {
 
 		// Check if a ping message
 		if wsMessage.Type < 0 {
+			log.Println("Pinged")
 			sock.Pinged = true
 			continue
 		} else if sock.Deleted { // Remove connection if sock instance deleted

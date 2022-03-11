@@ -44,6 +44,8 @@ func main() {
 	})
 
 	app.Get("/channel/:channel", websocket.New(WebSocket))
+	app.Get("/api/channel/:channel/:id", GetSock)
+	app.Get("/api/channel/:channel", GetSocks)
 
 	flag.IntVar(&READ_LIMIT, "limit", 1024, "Set sock's read limit")
 	flag.IntVar(&PING_SECOND, "ping", 60, "Set sock's ping second")
