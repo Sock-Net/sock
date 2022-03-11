@@ -38,6 +38,10 @@ func RandomId() string {
 
 // Check if string is right channel format
 func IsChannelFormat(str string) bool {
+	if len(str) < 3 && len(str) > 16 {
+		return false
+	}
+
 	for _, char := range str {
 		if !strings.Contains(LETTERS, string(char)) {
 			return false
@@ -90,4 +94,19 @@ func FindConnections(channel string) []*Sock {
 	}
 
 	return socks
+}
+
+// Check if id exists in channel
+func CheckIdExists(channel, id string) bool {
+	if len(id) < 3 && len(id) > 16 {
+		return false
+	}
+
+	for _, sock := range CONNECTIONS {
+		if sock.Channel == channel && sock.Id == id {
+			return true
+		}
+	}
+
+	return false
 }

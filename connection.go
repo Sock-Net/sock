@@ -48,8 +48,9 @@ func WebSocket(c *websocket.Conn) {
 	}
 
 	channel := c.Params("channel", "default")
+	sockId := c.Query("id", RandomId())
 
-	if !IsChannelFormat(channel) {
+	if !IsChannelFormat(channel) || CheckIdExists(channel, sockId) {
 		c.Close()
 	}
 
@@ -59,7 +60,7 @@ func WebSocket(c *websocket.Conn) {
 		Pinged:     false,
 		Deleted:    false,
 		Channel:    channel,
-		Id:         RandomId(),
+		Id:         sockId,
 		CreatedAt:  time.Now(),
 	}
 	sock.StartPingChecker()
