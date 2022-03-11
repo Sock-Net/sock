@@ -71,7 +71,7 @@ func (s *Sock) Destroy() {
 func (s *Sock) StartPingChecker() {
 	go func() {
 		for {
-			time.Sleep(30 * time.Second)
+			time.Sleep(time.Duration(PING_SECOND) * time.Second)
 
 			if s.Pinged {
 				s.Pinged = false

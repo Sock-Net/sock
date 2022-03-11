@@ -26,6 +26,7 @@ import (
 )
 
 var READ_LIMIT int
+var PING_SECOND int
 var PORT string
 var CONNECTION_TOKEN string
 
@@ -45,6 +46,7 @@ func main() {
 	app.Get("/channel/:channel", websocket.New(WebSocket))
 
 	flag.IntVar(&READ_LIMIT, "limit", 1024, "Set sock's read limit")
+	flag.IntVar(&PING_SECOND, "ping", 60, "Set sock's ping second")
 	flag.StringVar(&PORT, "port", "", "Set sock's sevre port")
 	flag.StringVar(&CONNECTION_TOKEN, "token", "demo", "Set sock's connection token")
 	flag.Parse()
