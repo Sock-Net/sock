@@ -107,6 +107,12 @@ func WebSocket(c *websocket.Conn) {
 			log.Println("Pinged")
 			sock.Pinged = true
 			continue
+		} else if wsMessage.Type == 0 { // Get current id
+			if wsError = sock.WriteMessage(messageType, []byte("{\"type\":0,\"data\":\""+sock.Id+"\",\"from\":\""+sock.Id+"\"}")); wsError != nil {
+				log.Println("Write error:", wsError)
+				break
+			}
+			continue
 		} else if sock.Deleted { // Remove connection if sock instance deleted
 			sock.Destroy()
 			break
